@@ -80,7 +80,6 @@ public class WMListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player p = event.getPlayer();
-        UpdateChecker.updateMsg(p);
         PlayerConfig.clearPlayerConfig(p);
         if (PlayerConfig.isWandMode(p)) {
             PlayerConfig.setWandMode(p, false);
@@ -153,7 +152,7 @@ public class WMListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onBlockRedstoneChange(BlockRedstoneEvent event) {
         Block b = event.getBlock();
-        if ((b.getType() == Material.SIGN) || (b.getType() == Material.WALL_SIGN)) {
+        if ((b.getType() == Material.OAK_SIGN) || (b.getType() == Material.OAK_WALL_SIGN)) {
             BlockState state = b.getState();
             if (state instanceof Sign) {
                 Sign sign = (Sign) state;

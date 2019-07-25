@@ -35,7 +35,7 @@ biomes:
 brush:
   default-radius: 5             # Default brush radius
   biome:                        # Default brush biome
-    default-biome: ice_flats    # Default brush biome
+    default-biome: forest    # Default brush biome
     item: '&6WeatherMan wand&1&0&2$GHAST_TEAR' # Item that will count as Biome brush
   woodcutter:
     item: '&6Woodcutter&1&0&2$GHAST_TEAR'      # Item that will count as Woodcutter brush

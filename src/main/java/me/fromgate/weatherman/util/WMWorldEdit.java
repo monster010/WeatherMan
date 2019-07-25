@@ -22,11 +22,17 @@
 
 package me.fromgate.weatherman.util;
 
+import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
-import com.sk89q.worldedit.bukkit.selections.Selection;
+import com.sk89q.worldedit.regions.Region;
+import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
+import com.sk89q.worldguard.protection.regions.RegionQuery;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -80,7 +86,9 @@ public class WMWorldEdit {
         if (!worldguardActive) return null;
         if (world == null) return null;
         if (rg.isEmpty()) return null;
-        ProtectedRegion region = worldguard.getRegionManager(world).getRegion(rg);
+        RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+        RegionManager manager = container.get(BukkitAdapter.adapt(world));
+        ProtectedRegion region = manager.getRegion(rg);
         if (region == null) return null;
         return new Location(world, region.getMinimumPoint().getBlockX(), region.getMinimumPoint().getBlockY(), region.getMinimumPoint().getBlockZ());
     }
@@ -89,7 +97,9 @@ public class WMWorldEdit {
         if (!worldguardActive) return null;
         if (world == null) return null;
         if (rg.isEmpty()) return null;
-        ProtectedRegion region = worldguard.getRegionManager(world).getRegion(rg);
+        RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+        RegionManager manager = container.get(BukkitAdapter.adapt(world));
+        ProtectedRegion region = manager.getRegion(rg);
         if (region == null) return null;
         return new Location(world, region.getMaximumPoint().getBlockX(), region.getMaximumPoint().getBlockY(), region.getMaximumPoint().getBlockZ());
     }
@@ -98,14 +108,18 @@ public class WMWorldEdit {
         if (!WMWorldEdit.isWG()) return false;
         if (world == null) return false;
         if (rg.isEmpty()) return false;
-        ProtectedRegion region = worldguard.getRegionManager(world).getRegion(rg);
+        RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+        RegionManager manager = container.get(BukkitAdapter.adapt(world));
+        ProtectedRegion region = manager.getRegion(rg);
         return (region != null);
     }
 
     public static boolean isRegionExists(String region) {
         if (!WMWorldEdit.isWG()) return false;
         for (World w : Bukkit.getWorlds()) {
-            ProtectedRegion rg = worldguard.getRegionManager(w).getRegion(region);
+            RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+            RegionManager manager = container.get(BukkitAdapter.adapt(w));
+            ProtectedRegion rg = manager.getRegion(region);
             if (rg != null) return true;
         }
         return false;
@@ -114,7 +128,9 @@ public class WMWorldEdit {
     public static List<String> getRegions(Location loc) {
         List<String> rgList = new ArrayList<>();
         if (!WMWorldEdit.isWG()) return rgList;
-        ApplicableRegionSet regionSet = worldguard.getRegionManager(loc.getWorld()).getApplicableRegions(loc);
+        RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+        RegionQuery query = container.createQuery();
+        ApplicableRegionSet regionSet = query.getApplicableRegions(BukkitAdapter.adapt(loc));
         if (regionSet.size() == 0) return rgList;
         for (ProtectedRegion rg : regionSet) rgList.add(rg.getId());
         return rgList;
@@ -123,22 +139,40 @@ public class WMWorldEdit {
     //WorldEdit
     public static boolean isSelected(Player player) {
         if (!worldeditActive) return false;
-        Selection sel = worldedit.getSelection(player);
+        LocalSession session = worldedit.getSession((Player) player);
+        Region sel;
+        try {
+             sel = session.getSelection(session.getSelectionWorld());
+        } catch(Exception e) {
+            return false;
+        }
+
         return (sel != null);
     }
 
     public static Location getSelectionMinPoint(Player player) {
         if (!worldeditActive) return null;
-        Selection sel = worldedit.getSelection(player);
+        LocalSession session = worldedit.getSession((Player) player);
+        Region sel;
+        try {
+            sel = session.getSelection(session.getSelectionWorld());
+        } catch(Exception e) {
+            return null;
+        }
         if (sel == null) return null;
-        return sel.getMinimumPoint();
+        return BukkitAdapter.adapt(player.getWorld(), sel.getMinimumPoint());
     }
 
     public static Location getSelectionMaxPoint(Player player) {
         if (!worldeditActive) return null;
-        Selection sel = worldedit.getSelection(player);
-        if (sel == null) return null;
-        return sel.getMaximumPoint();
+        LocalSession session = worldedit.getSession((Player) player);
+        Region sel;
+        try {
+            sel = session.getSelection(session.getSelectionWorld());
+        } catch(Exception e) {
+            return null;
+        }
+        return BukkitAdapter.adapt(player.getWorld(), sel.getMaximumPoint());
     }
 
     public static boolean isPlayerInRegion(Player player, String region) {
